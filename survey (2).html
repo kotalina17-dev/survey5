@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Эмоциональный интеллект и копинг-стратегии</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1d2330;--muted:#5d6675;--line:#dfe3ea;--accent:#3563e9;--accent-text:#fff;--warn-bg:#fff4d6;--warn-text:#6b4b00;--bar:#dbe4ff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--card:#1e232c;--text:#e8ebf1;--muted:#9aa4b5;--line:#2f3644;--accent:#6b8cff;--accent-text:#0b1020;--warn-bg:#3a2f10;--warn-text:#f0d88a;--bar:#2a3556}}
+:root[data-theme="dark"]{--bg:#14171d;--card:#1e232c;--text:#e8ebf1;--muted:#9aa4b5;--line:#2f3644;--accent:#6b8cff;--accent-text:#0b1020;--warn-bg:#3a2f10;--warn-text:#f0d88a;--bar:#2a3556}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:720px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+h1{font-size:1.35rem;margin:0 0 8px}h2{font-size:1.1rem;margin:0 0 8px}
+p{margin:0 0 10px}.muted{color:var(--muted);font-size:.92rem}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font-size:1rem}
+button{background:var(--accent);color:var(--accent-text);border:0;border-radius:10px;padding:12px 18px;font-size:1rem;font-weight:600;cursor:pointer}
+button.secondary{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.progress{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+.progress>div{height:100%;background:var(--accent);width:0;transition:width .2s}
+.item{padding:12px 0;border-top:1px solid var(--line)}.item:first-child{border-top:0}
+.item .q{margin-bottom:8px}.item .q b{color:var(--muted);margin-right:6px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-weight:400;margin:0}
+.opt input{width:auto;margin:0}
+.opt.sel{border-color:var(--accent);background:var(--bar)}
+.miss{outline:2px solid #d33;outline-offset:4px;border-radius:6px}
+.warn{background:var(--warn-bg);color:var(--warn-text);padding:10px 12px;border-radius:10px;font-size:.92rem;margin-bottom:12px}
+.scale{margin:12px 0}.scale .top{display:flex;justify-content:space-between;gap:10px;font-size:.95rem}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:4px}
+.bar>div{height:100%;background:var(--accent)}
+.hidden{display:none}
+.hl{background:var(--bar);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:.95rem}
+.checkline{display:flex;gap:10px;align-items:flex-start;font-weight:400}.checkline input{width:auto;margin-top:5px}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ========== ЭКРАН 1: СОГЛАСИЕ + ПАСПОРТИЧКА ========== -->
+<section id="s-intro" class="card">
+  <h1 id="title"></h1>
+  <p id="intro-text"></p>
+  <label for="code">Личный код (придумайте, например, инициалы + год рождения)</label>
+  <input id="code" autocomplete="off">
+  <label for="age">Возраст</label>
+  <input id="age" type="number" min="16" max="99" inputmode="numeric">
+  <label for="sex">Пол</label>
+  <select id="sex"><option value="">—</option><option>Женский</option><option>Мужской</option></select>
+  <label for="course">Курс</label>
+  <select id="course"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+  <label for="spec">Специальность</label>
+  <input id="spec" autocomplete="off">
+  <label class="checkline" style="margin-top:16px"><input type="checkbox" id="consent"><span>Я прочитал(а) информацию об исследовании и добровольно соглашаюсь участвовать. Я знаю, что могу прекратить участие в любой момент.</span></label>
+  <div class="row"><button id="btn-start" disabled>Начать</button></div>
+</section>
+
+<!-- ========== ЭКРАН 2: ВОПРОСЫ ========== -->
+<section id="s-test" class="hidden">
+  <div class="progress"><div id="pbar"></div></div>
+  <div class="card">
+    <h2 id="test-title"></h2>
+    <p class="muted" id="test-instr"></p>
+    <div id="items"></div>
+    <div class="row">
+      <button class="secondary" id="btn-prev">Назад</button>
+      <button id="btn-next">Далее</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ЭКРАН 3: РЕЗУЛЬТАТЫ ========== -->
+<section id="s-result" class="hidden">
+  <div class="card">
+    <h1>Ваши результаты</h1>
+    <div id="cfg-warn" class="warn hidden"></div>
+    <div id="summary"></div>
+    <div id="results"></div>
+    <div id="send-box" class="hidden hl" style="margin-top:16px">
+      <b>Помогите исследованию</b>
+      <div class="muted" style="margin:4px 0 10px">Нажмите кнопку и в открывшейся форме нажмите «Отправить». Передаётся только ваш анонимный код, возраст, пол, курс и ответы.</div>
+      <a id="btn-send" target="_blank" rel="noopener" style="display:inline-block;background:var(--accent);color:var(--accent-text);padding:12px 18px;border-radius:10px;font-weight:600;text-decoration:none">Отправить результаты исследователю</a>
+    </div>
+    <p class="muted" id="disclaimer"></p>
+    <div class="row">
+      <button id="btn-copy">Скопировать результаты</button>
+    </div>
+    <p class="muted" id="copy-note"></p>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* =====================================================================
+   НАСТРОЙКА (единственное место, которое нужно редактировать)
+   ---------------------------------------------------------------------
+   1. Вставьте тексты пунктов из официальных источников в массивы items.
+   2. Заполните ключи: plus  — номера пунктов, где балл считается прямо,
+                       minus — номера обратных пунктов (балл = max − ответ),
+                       sumOf — итоговая шкала как сумма других шкал (по названию).
+      Номера пунктов начинаются с 1.
+   3. Проверьте options (варианты ответа и их значения) по руководству методики.
+   4. Нормы и интерпретацию (низкий/средний/высокий) берите из источника
+      и добавляйте в поле levels (см. пример у первой шкалы).
+   ===================================================================== */
+const CONFIG = {
+  title: "Эмоциональный интеллект и копинг-стратегии",
+  intro: "Узнайте свой профиль эмоционального интеллекта и то, как вы обычно справляетесь со стрессом. Результат вы увидите сразу после теста, с пояснением по каждой шкале. Тест анонимный, «правильных» ответов нет, займёт около 7–10 минут. Данные используются только в студенческой научной работе.",
+  disclaimer: "Результаты носят информационный характер, получены в рамках учебного исследования и не являются диагнозом.",
+  itemsPerPage: 8,
+
+  // Ссылка на вашу Google-форму с предзаполненным полем (см. инструкцию).
+  // В ней вместо ответа должно стоять слово __DATA__ . Пока пусто — кнопка отправки не показывается.
+  submitUrl: "https://docs.google.com/forms/d/e/1FAIpQLSe_mnafLbJL4qGttD4wWdkVd7k-dntzFapueK9ly9ZsF94tnA/viewform?usp=pp_url&entry.1683332168=__DATA__",
+
+  tests: [
+    {
+      id: "emin",
+      title: "Опросник эмоционального интеллекта (ЭмИн)",
+      instruction: "Оцените, насколько вы согласны с каждым утверждением.",
+      // Значения 0-3 по руководству Люсина (нормы рассчитаны на эту шкалу)
+      options: [
+        { v: 0, t: "Совсем не согласен" },
+        { v: 1, t: "Скорее не согласен" },
+        { v: 2, t: "Скорее согласен" },
+        { v: 3, t: "Полностью согласен" }
+      ],
+      items: [
+        "Я замечаю, когда близкий человек переживает, даже если он (она) пытается это скрыть",
+        "Если человек на меня обижается, я не знаю, как восстановить с ним хорошие отношения",
+        "Мне легко догадаться о чувствах человека по выражению его лица",
+        "Я хорошо знаю, чем заняться, чтобы улучшить себе настроение",
+        "У меня обычно не получается повлиять на эмоциональное состояние своего собеседника",
+        "Когда я раздражаюсь, то не могу сдержаться, и говорю всё, что думаю",
+        "Я хорошо понимаю, почему мне нравятся или не нравятся те или иные люди",
+        "Я не сразу замечаю, когда начинаю злиться",
+        "Я умею улучшить настроение окружающих",
+        "Если я увлекаюсь разговором, то говорю слишком громко и активно жестикулирую",
+        "Я понимаю душевное состояние некоторых людей без слов",
+        "В экстремальной ситуации я не могу усилием воли взять себя в руки",
+        "Я легко понимаю мимику и жесты других людей",
+        "Когда я злюсь, я знаю, почему",
+        "Я знаю, как ободрить человека, находящегося в тяжелой ситуации",
+        "Окружающие считают меня слишком эмоциональным человеком",
+        "Я способен успокоить близких, когда они находятся в напряжённом состоянии",
+        "Мне бывает трудно описать, что я чувствую к другим",
+        "Если я смущаюсь при общении с незнакомыми людьми, то могу это скрыть",
+        "Глядя на человека, я легко могу понять его эмоциональное состояние",
+        "Я контролирую выражение чувств на своем лице",
+        "Бывает, что я не понимаю, почему испытываю то или иное чувство",
+        "В критических ситуациях я умею контролировать выражение своих эмоций",
+        "Если надо, я могу разозлить человека",
+        "Когда я испытываю положительные эмоции, я знаю, как поддержать это состояние",
+        "Как правило, я понимаю, какую эмоцию испытываю",
+        "Если собеседник пытается скрыть свои эмоции, я сразу чувствую это",
+        "Я знаю как успокоиться, если я разозлился",
+        "Можно определить, что чувствует человек, просто прислушиваясь к звучанию его голоса",
+        "Я не умею управлять эмоциями других людей",
+        "Мне трудно отличить чувство вины от чувства стыда",
+        "Я умею точно угадывать, что чувствуют мои знакомые",
+        "Мне трудно справляться с плохим настроением",
+        "Если внимательно следить за выражением лица человека, то можно понять, какие эмоции он скрывает",
+        "Я не нахожу слов, чтобы описать свои чувства друзьям",
+        "Мне удаётся поддержать людей, которые делятся со мной своими переживаниями",
+        "Я умею контролировать свои эмоции",
+        "Если мой собеседник начинает раздражаться, я подчас замечаю это слишком поздно",
+        "По интонациям моего голоса легко догадаться о том, что я чувствую",
+        "Если близкий человек плачет, я теряюсь",
+        "Мне бывает весело или грустно без всякой причины",
+        "Мне трудно предвидеть смену настроения у окружающих меня людей",
+        "Я не умею преодолевать страх",
+        "Бывает, что я хочу поддержать человека, а он этого не чувствует, не понимает",
+        "У меня бывают чувства, которые я не могу точно определить",
+        "Я не понимаю, почему некоторые люди на меня обижаются"
+      ],
+      scales: [
+        { name: "Понимание чужих эмоций", desc: "Насколько хорошо вы улавливаете, что чувствуют другие: по мимике, интонации, поведению.",
+          plus: [1,3,11,13,20,27,29,32,34], minus: [38,42,46],
+          levels: [{max:19,label:"очень низкий"},{max:22,label:"низкий"},{max:26,label:"средний"},{max:30,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Управление чужими эмоциями", desc: "Умение влиять на состояние других людей: поддержать, успокоить, воодушевить.",
+          plus: [9,15,17,24,36], minus: [2,5,30,40,44],
+          levels: [{max:14,label:"очень низкий"},{max:17,label:"низкий"},{max:21,label:"средний"},{max:24,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Понимание своих эмоций", desc: "Насколько ясно вы осознаёте свои чувства и можете назвать, что и почему переживаете.",
+          plus: [7,14,26], minus: [8,18,22,31,35,41,45],
+          levels: [{max:13,label:"очень низкий"},{max:16,label:"низкий"},{max:21,label:"средний"},{max:25,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Управление своими эмоциями", desc: "Способность и потребность управлять своим состоянием, поддерживать нужные эмоции и сдерживать нежелательные.",
+          plus: [4,25,28,37], minus: [12,33,43],
+          levels: [{max:9,label:"очень низкий"},{max:12,label:"низкий"},{max:15,label:"средний"},{max:17,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Контроль экспрессии", desc: "Способность контролировать внешние проявления своих эмоций.",
+          plus: [19,21,23], minus: [6,10,16,39],
+          levels: [{max:6,label:"очень низкий"},{max:9,label:"низкий"},{max:12,label:"средний"},{max:15,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Межличностный ЭИ", sumOf: ["Понимание чужих эмоций", "Управление чужими эмоциями"],
+          levels: [{max:34,label:"очень низкий"},{max:39,label:"низкий"},{max:46,label:"средний"},{max:52,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Внутриличностный ЭИ", sumOf: ["Понимание своих эмоций", "Управление своими эмоциями", "Контроль экспрессии"],
+          levels: [{max:33,label:"очень низкий"},{max:38,label:"низкий"},{max:47,label:"средний"},{max:54,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Понимание эмоций (ПЭ)", sumOf: ["Понимание чужих эмоций", "Понимание своих эмоций"],
+          levels: [{max:34,label:"очень низкий"},{max:39,label:"низкий"},{max:47,label:"средний"},{max:53,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Управление эмоциями (УЭ)", sumOf: ["Управление чужими эмоциями", "Управление своими эмоциями", "Контроль экспрессии"],
+          levels: [{max:33,label:"очень низкий"},{max:39,label:"низкий"},{max:47,label:"средний"},{max:53,label:"высокий"},{max:9999,label:"очень высокий"}] },
+        { name: "Общий ЭИ (ОЭИ)", sumOf: ["Межличностный ЭИ", "Внутриличностный ЭИ"],
+          levels: [{max:71,label:"очень низкий"},{max:78,label:"низкий"},{max:92,label:"средний"},{max:104,label:"высокий"},{max:9999,label:"очень высокий"}] }
+      ]
+    },
+    {
+      id: "wcq",
+      title: "Опросник копинг-стратегий (3 шкалы: разрешение проблем, поиск социальной поддержки, избегание проблем)",
+      instruction: "Оцените, насколько вы согласны с каждым утверждением применительно к тому, как вы обычно справляетесь со стрессовыми ситуациями.",
+      options: [
+        { v: 1, t: "Не согласен" },
+        { v: 2, t: "Согласен" },
+        { v: 3, t: "Полностью согласен" }
+      ],
+      items: [
+        "Позволяю себе поделиться чувством с другом",
+        "Стараюсь все сделать так, чтобы иметь возможность наилучшим образом решить проблему",
+        "Осуществляю поиск всех возможных решений, прежде чем что-то предпринять",
+        "Пытаюсь отвлечься от проблемы",
+        "Принимаю сочувствие и понимание от кого-либо",
+        "Делаю все возможное, чтобы не дать окружающим увидеть, что мои дела плохи",
+        "Обсуждаю ситуацию с людьми, так как обсуждение помогает мне чувствовать себя лучше",
+        "Ставлю для себя ряд целей, позволяющих постепенно справляться с ситуацией",
+        "Очень тщательно взвешиваю возможности выбора",
+        "Мечтаю, фантазирую о лучших временах",
+        "Пытаюсь различными способами решать проблему, пока не найду подходящий",
+        "Доверяю свои страхи родственнику или другу",
+        "Больше времени, чем обычно, провожу один",
+        "Рассказываю другим людям о ситуации, так как только ее обсуждение помогает мне прийти к ее разрешению",
+        "Думаю о том, что нужно сделать, чтобы исправить положение",
+        "Сосредотачиваюсь полностью на решении проблемы",
+        "Обдумываю про себя план действий",
+        "Смотрю телевизор дольше, чем обычно",
+        "Иду к кому-нибудь (другу или специалисту), чтобы он помог мне чувствовать себя лучше",
+        "Стою твердо и борюсь за то, что мне нужно в этой ситуации",
+        "Избегаю общения с людьми",
+        "Переключаюсь на хобби или занимаюсь спортом, чтобы избежать проблем",
+        "Иду к другу за советом - как исправить ситуацию",
+        "Иду к другу, чтобы он помог мне лучше почувствовать проблему",
+        "Принимаю сочувствие, взаимопонимание друзей",
+        "Сплю больше обычного",
+        "Фантазирую о том, что все могло бы быть иначе",
+        "Представляю себя героем книги или кино",
+        "Пытаюсь решить проблему",
+        "Хочу, чтобы люди оставили меня одного",
+        "Принимаю помощь от друзей или родственников",
+        "Ищу успокоения у тех, кто знает меня лучше",
+        "Пытаюсь тщательно планировать свои действия, а не действовать импульсивно под влиянием внешнего побуждения"
+      ],
+      scales: [
+        { name: "Разрешение проблем", desc: "Активные, последовательные усилия по решению проблемы: постановка целей, обдумывание плана, взвешивание вариантов.",
+          plus: [2,3,8,9,11,15,16,17,20,29,33], minus: [],
+          levels: [{max:15,label:"очень низкий"},{max:21,label:"низкий"},{max:30,label:"средний"},{max:9999,label:"высокий"}] },
+        { name: "Поиск социальной поддержки", desc: "Обращение к другим людям за сочувствием, советом или практической помощью.",
+          plus: [1,5,7,12,14,19,23,24,25,31,32], minus: [],
+          levels: [{max:12,label:"очень низкий"},{max:18,label:"низкий"},{max:28,label:"средний"},{max:9999,label:"высокий"}] },
+        { name: "Избегание проблем", desc: "Уход от проблемы: отвлечение, уединение, избегание общения, фантазии о другом исходе.",
+          plus: [4,6,10,13,18,21,22,26,27,28,30], minus: [],
+          levels: [{max:14,label:"очень низкий"},{max:23,label:"низкий"},{max:26,label:"средний"},{max:9999,label:"высокий"}] }
+      ]
+    }
+  ]
+};
+/* ===================== КОНЕЦ НАСТРОЙКИ ===================== */
+
+const $ = id => document.getElementById(id);
+const answers = {};            // answers[testId][index] = value
+CONFIG.tests.forEach(t => answers[t.id] = new Array(t.items.length).fill(null));
+const pages = [];              // {test, from, to}
+CONFIG.tests.forEach(t => {
+  for (let i = 0; i < t.items.length; i += CONFIG.itemsPerPage)
+    pages.push({ test: t, from: i, to: Math.min(i + CONFIG.itemsPerPage, t.items.length) });
+});
+let page = 0, profile = {}, resultRows = [];
+
+$("title").textContent = CONFIG.title;
+$("intro-text").textContent = CONFIG.intro;
+$("disclaimer").textContent = CONFIG.disclaimer;
+document.title = CONFIG.title;
+
+$("consent").addEventListener("change", e => $("btn-start").disabled = !e.target.checked);
+$("btn-start").addEventListener("click", () => {
+  profile = { code: $("code").value.trim(), age: $("age").value, sex: $("sex").value, course: $("course").value, spec: $("spec").value.trim() };
+  $("s-intro").classList.add("hidden");
+  $("s-test").classList.remove("hidden");
+  renderPage();
+});
+
+function renderPage() {
+  const p = pages[page], t = p.test, box = $("items");
+  $("test-title").textContent = t.title;
+  $("test-instr").textContent = t.instruction;
+  box.innerHTML = "";
+  for (let i = p.from; i < p.to; i++) {
+    const div = document.createElement("div");
+    div.className = "item"; div.dataset.i = i;
+    const q = document.createElement("div"); q.className = "q";
+    const b = document.createElement("b"); b.textContent = (i + 1) + ".";
+    q.append(b, document.createTextNode(t.items[i] || "[текст пункта " + (i + 1) + " не задан]"));
+    const opts = document.createElement("div"); opts.className = "opts";
+    t.options.forEach(o => {
+      const lab = document.createElement("label"); lab.className = "opt";
+      const r = document.createElement("input"); r.type = "radio"; r.name = t.id + "_" + i; r.value = o.v;
+      if (answers[t.id][i] === o.v) { r.checked = true; lab.classList.add("sel"); }
+      r.addEventListener("change", () => {
+        answers[t.id][i] = o.v;
+        opts.querySelectorAll(".opt").forEach(x => x.classList.remove("sel"));
+        lab.classList.add("sel"); div.classList.remove("miss");
+      });
+      lab.append(r, document.createTextNode(o.t)); opts.append(lab);
+    });
+    div.append(q, opts); box.append(div);
+  }
+  $("pbar").style.width = (page / pages.length * 100) + "%";
+  $("btn-prev").style.visibility = page === 0 ? "hidden" : "visible";
+  $("btn-next").textContent = page === pages.length - 1 ? "Показать результаты" : "Далее";
+  window.scrollTo(0, 0);
+}
+
+$("btn-prev").addEventListener("click", () => { if (page > 0) { page--; renderPage(); } });
+$("btn-next").addEventListener("click", () => {
+  const p = pages[page]; let first = null;
+  for (let i = p.from; i < p.to; i++) {
+    if (answers[p.test.id][i] === null) {
+      const el = document.querySelector('.item[data-i="' + i + '"]');
+      el.classList.add("miss"); if (!first) first = el;
+    }
+  }
+  if (first) { first.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+  if (page < pages.length - 1) { page++; renderPage(); } else showResults();
+});
+
+function computeScores() {
+  const rows = [];
+  CONFIG.tests.forEach(t => {
+    const maxV = Math.max(...t.options.map(o => o.v));
+    const minV = Math.min(...t.options.map(o => o.v));
+    const byName = {};
+    t.scales.forEach(s => {
+      let score = 0, max = 0, configured = true;
+      if (s.sumOf) {
+        s.sumOf.forEach(n => { if (byName[n]) { score += byName[n].score; max += byName[n].max; } else configured = false; });
+      } else {
+        (s.plus || []).forEach(n => { score += answers[t.id][n - 1] ?? 0; max += maxV; });
+        (s.minus || []).forEach(n => { score += (maxV + minV) - (answers[t.id][n - 1] ?? minV); max += maxV; });
+        if (!max) configured = false;
+      }
+      let level = "";
+      if (s.levels && configured) { const l = s.levels.find(x => score <= x.max); if (l) level = l.label; }
+      byName[s.name] = { score, max };
+      rows.push({ test: t.title, testId: t.id, name: s.name, desc: s.desc || "", score, max, level, configured });
+    });
+  });
+  return rows;
+}
+
+function showResults() {
+  $("s-test").classList.add("hidden");
+  $("s-result").classList.remove("hidden");
+  resultRows = computeScores();
+  const box = $("results"); box.innerHTML = "";
+  let lastTest = "", unconfigured = 0;
+  resultRows.forEach(r => {
+    if (r.test !== lastTest) { const h = document.createElement("h2"); h.textContent = r.test; h.style.marginTop = "16px"; box.append(h); lastTest = r.test; }
+    const d = document.createElement("div"); d.className = "scale";
+    const top = document.createElement("div"); top.className = "top";
+    const n = document.createElement("span"); n.textContent = r.name;
+    const v = document.createElement("b");
+    if (!r.configured) { v.textContent = "ключ не задан"; unconfigured++; }
+    else v.textContent = r.score + " из " + r.max + (r.level ? " — " + r.level : "");
+    top.append(n, v);
+    const bar = document.createElement("div"); bar.className = "bar";
+    const fill = document.createElement("div"); fill.style.width = (r.configured && r.max ? r.score / r.max * 100 : 0) + "%";
+    bar.append(fill); d.append(top, bar);
+    if (r.desc) { const ds = document.createElement("div"); ds.className = "muted"; ds.style.marginTop = "4px"; ds.textContent = r.desc; d.append(ds); }
+    box.append(d);
+  });
+  // краткий вывод по каждой методике
+  const sum = $("summary"); sum.innerHTML = "";
+  CONFIG.tests.forEach(t => {
+    const ok = resultRows.filter(r => r.testId === t.id && r.configured && r.max && !r.name.match(/^(Общий|Межличностный|Внутриличностный)/));
+    if (ok.length < 2) return;
+    const pc = r => r.score / r.max;
+    const hi = ok.reduce((a, b) => pc(b) > pc(a) ? b : a), lo = ok.reduce((a, b) => pc(b) < pc(a) ? b : a);
+    const div = document.createElement("div"); div.className = "hl";
+    const h = document.createElement("b"); h.textContent = t.title.split(" (")[0];
+    const l1 = document.createElement("div"); l1.textContent = "Выражено сильнее всего: " + hi.name;
+    const l2 = document.createElement("div"); l2.textContent = "Выражено слабее всего: " + lo.name;
+    div.append(h, l1, l2); sum.append(div);
+  });
+  // отправка исследователю
+  if (CONFIG.submitUrl) {
+    $("send-box").classList.remove("hidden");
+    $("btn-send").href = CONFIG.submitUrl.replace("__DATA__", encodeURIComponent(payload()));
+  }
+  if (unconfigured) {
+    const w = $("cfg-warn"); w.classList.remove("hidden");
+    w.textContent = "Для " + unconfigured + " шкал(ы) не заданы ключи (номера пунктов) в блоке CONFIG. Заполните их, чтобы баллы считались.";
+  }
+  window.scrollTo(0, 0);
+}
+
+function payload() {
+  const a = CONFIG.tests.map(t => t.id + ":" + answers[t.id].join(t.options.some(o => o.v > 9) ? "," : "")).join(";");
+  const sc = resultRows.map(r => r.configured ? r.score : "").join(",");
+  return ["v2", profile.code, profile.age, profile.sex, profile.course, profile.spec].map(x => x || "").join("|") + "|S=" + sc + "|A=" + a;
+}
+
+function resultText() {
+  const head = "Код: " + (profile.code || "—") + "; возраст: " + (profile.age || "—") + "; пол: " + (profile.sex || "—") +
+    "; курс: " + (profile.course || "—") + "; специальность: " + (profile.spec || "—");
+  return head + "\n" + resultRows.map(r => r.test.split(" (")[0] + " | " + r.name + ": " + (r.configured ? r.score + "/" + r.max : "н/д")).join("\n");
+}
+function resultCSV() {
+  const q = s => '"' + String(s ?? "").replace(/"/g, '""') + '"';
+  const lines = [["code","age","sex","course","specialty","test","scale","score","max"].join(",")];
+  resultRows.forEach(r => lines.push([profile.code, profile.age, profile.sex, profile.course, profile.spec, r.testId, r.name, r.configured ? r.score : "", r.configured ? r.max : ""].map(q).join(",")));
+  // сырые ответы отдельными строками, чтобы исследователь мог пересчитать
+  CONFIG.tests.forEach(t => answers[t.id].forEach((a, i) => lines.push([profile.code, profile.age, profile.sex, profile.course, profile.spec, t.id, "item_" + (i + 1), a, ""].map(q).join(","))));
+  return "\ufeff" + lines.join("\n");
+}
+
+$("btn-copy").addEventListener("click", async () => {
+  const txt = resultText();
+  try { await navigator.clipboard.writeText(txt); $("copy-note").textContent = "Скопировано. Отправьте текст исследователю."; }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = txt; ta.style.width = "100%"; ta.rows = 8;
+    $("copy-note").textContent = "Выделите и скопируйте текст ниже:"; $("copy-note").append(ta); ta.select();
+  }
+});
+</script>
+</body>
+</html>
